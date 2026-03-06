@@ -2,6 +2,7 @@
 
 import { useState, useRef, useMemo } from "react"
 import { EquityCurve } from "./components/EquityCurve"
+import { LighterTab } from "./components/LighterTab"
 
 type Fill = {
   coin: string
@@ -147,6 +148,7 @@ function aggregateFills(fills: Fill[]): Position[] {
 }
 
 export default function Home() {
+  const [source, setSource]   = useState<"hyperliquid" | "lighter">("hyperliquid")
   const [address, setAddress] = useState("")
   const [trades, setTrades]   = useState<Fill[]>([])
   const [loading, setLoading] = useState(false)
@@ -207,11 +209,24 @@ export default function Home() {
     <main className="min-h-screen bg-[#0a0a0a] text-white p-4 max-w-2xl mx-auto">
 
       {/* Header */}
-      <div className="mb-8 pt-6">
-        <div className="text-xs tracking-[0.3em] text-zinc-500 mb-1 uppercase">Hyperliquid</div>
-        <div className="text-2xl font-black tracking-tight">Trade History</div>
+      <div className="mb-6 pt-6">
+        <div className="text-2xl font-black tracking-tight mb-4">Trade History</div>
+        {/* Source tabs */}
+        <div className="flex gap-1 bg-white/5 border border-white/8 rounded-xl p-1">
+          {(["hyperliquid", "lighter"] as const).map(s => (
+            <button key={s} onClick={() => setSource(s)}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                source === s ? "bg-white/10 text-white" : "text-zinc-500"
+              }`}>{s.charAt(0).toUpperCase() + s.slice(1)}</button>
+          ))}
+        </div>
       </div>
 
+      {/* Lighter tab */}
+      {source === "lighter" && <LighterTab />}
+
+      {/* Wallet input — HL only */}
+      {source === "hyperliquid" && <>
       {/* Wallet input */}
       <div className="flex gap-2 mb-4">
         <input
@@ -415,6 +430,7 @@ export default function Home() {
       {!queried && !loading && (
         <div className="text-center text-zinc-700 text-sm mt-16">Enter a wallet address to view trade history</div>
       )}
+      </> /* end HL block */}
     </main>
   )
 }
