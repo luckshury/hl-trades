@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useMemo } from "react"
+import { EquityCurve } from "./components/EquityCurve"
 
 type Fill = {
   coin: string
@@ -193,6 +194,15 @@ export default function Home() {
   const winRate    = closedPos.length ? (winners / closedPos.length * 100).toFixed(1) : "—"
   const openCount  = filteredPos.filter(p => p.open).length
 
+  // Equity curve: cumulative PnL over close time
+  const equityPoints = useMemo(() => {
+    const sorted = closedPos
+      .filter(p => p.closeTime !== null)
+      .sort((a, b) => a.closeTime! - b.closeTime!)
+    let cum = 0
+    return sorted.map(p => { cum += p.pnl; return { time: p.closeTime!, value: Number(cum.toFixed(2)) } })
+  }, [closedPos])
+
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white p-4 max-w-2xl mx-auto">
 
@@ -273,6 +283,21 @@ export default function Home() {
           <div className="text-[11px] text-zinc-600 mb-3 px-1">
             {queried.slice(0, 6)}…{queried.slice(-4)} · {period.label}
           </div>
+
+          {/* Equity curve */}
+          {equityPoints.length >= 2 && (
+            <div className="mb-4 rounded-xl border border-white/8 bg-white/2 overflow-hidden">
+              <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                <span className="text-[10px] text-zinc-600 uppercase tracking-wider font-bold">Equity Curve</span>
+                <span className={`text-xs font-black ${totalPnl >= 0 ? "text-[#32D695]" : "text-[#FF4C61]"}`}>
+                  {totalPnl >= 0 ? "+" : ""}${fmt(totalPnl)}
+                </span>
+              </div>
+              <div className="h-36">
+                <EquityCurve points={equityPoints} />
+              </div>
+            </div>
+          )}
         </>
       )}
 
