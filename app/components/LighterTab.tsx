@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { EquityCurve } from "./EquityCurve"
 
-const PROXY  = "https://lighter-proxy-production.up.railway.app"
+const PROXY  = ""  // uses relative Next.js API routes (/api/lighter/...)
 const GREEN  = "#32D695"
 const RED    = "#FF4C61"
 const PURPLE = "#a78bfa"
@@ -87,12 +87,12 @@ export function LighterTab() {
     try {
       // Fetch balance + trades in parallel
       const [balRes, tradeRes] = await Promise.all([
-        fetch(`${PROXY}/balance`, {
+        fetch(`/api/lighter/balance`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ read_only_token: tkn.trim() }),
         }),
-        fetch(`${PROXY}/trades`, {
+        fetch(`/api/lighter/trades`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ read_only_token: tkn.trim(), limit: 100, sort_dir: "desc" }),
