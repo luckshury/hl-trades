@@ -136,12 +136,14 @@ export function LighterTab() {
       if (data.detail) throw new Error(data.detail)
       const list: LighterTrade[] = Array.isArray(data)
         ? data
-        : data?.trades || data?.items || data?.data || []
-      // Filter by time period
-      const cutoff = Date.now() - p.ms
+        : Array.isArray(data?.trades)
+          ? data.trades
+          : data?.items || data?.data || []
+      // Filter by time period (timestamp is unix seconds from Lighter)
+      const cutoffSec = (Date.now() - p.ms) / 1000
       setTrades(list.filter(t => {
-        const ts = (t.timestamp || t.created_at || 0) * (String(t.timestamp || t.created_at || 0).length < 13 ? 1000 : 1)
-        return ts >= cutoff
+        const ts = Number(t.timestamp || t.created_at || 0)
+        return ts >= cutoffSec
       }))
     } catch (e: any) {
       setError(e.message)
@@ -165,8 +167,8 @@ export function LighterTab() {
       .sort((a, b) => (a.timestamp ?? a.created_at ?? 0) - (b.timestamp ?? b.created_at ?? 0))
       .map(t => {
         cum += Number(t.pnl || 0)
-        const ts = (t.timestamp || t.created_at || 0)
-        const ms = String(ts).length < 13 ? ts * 1000 : ts
+        const ts = Number(t.timestamp || t.created_at || 0)
+        const ms = ts * 1000  // Lighter timestamps are unix seconds
         return { time: ms, value: Number(cum.toFixed(2)) }
       })
   }, [filtered])
@@ -272,8 +274,8 @@ export function LighterTab() {
               const pnl     = Number(t.pnl || 0)
               const px      = Number(t.price || 0)
               const sz      = Number(t.base_amount || 0)
-              const ts      = (t.timestamp || t.created_at || 0)
-              const ms      = String(ts).length < 13 ? ts * 1000 : ts
+                      const ts      = Number(t.timestamp || t.created_at || 0)
+              const ms      = ts * 1000  // Lighter timestamps are unix seconds
 
               return (
                 <div key={t.id ?? i} className="bg-white/3 border border-white/6 rounded-xl px-4 py-3 hover:border-white/12 transition-all">
